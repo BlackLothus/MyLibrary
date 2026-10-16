@@ -44,7 +44,7 @@ public class Loan implements Serializable {
     }
 
     public boolean isActive() {
-        // TODO:check sullo stato del prestito
+        // TODO:check sullo stato del prestito molto usato in LoanService
         return false;
     }
 
