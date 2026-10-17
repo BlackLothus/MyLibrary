@@ -28,15 +28,18 @@ public class Loan implements Serializable {
         return id;
     }
     public String getReaderId() {
+
         return readerId;
     }
     public String getIsbn() {
+
         return isbn;
     }
     public LocalDate getStartDate() {
         return startDate;
     }
     public LocalDate getDueDate() {
+
         return dueDate;
     }//quella concordata
     public LocalDate getReturnDate() {
@@ -44,17 +47,15 @@ public class Loan implements Serializable {
     }
 
     public boolean isActive() {
-        // TODO:check sullo stato del prestito molto usato in LoanService
-        return false;
+        return returnDate == null;
     }
 
     public boolean isOverdue(LocalDate today) {
-        // TODO:i prestiti in ritardo
-        return false;
+        return isActive() && today.isAfter(dueDate); //vedo se non restituito e in ritardo ritardo
     }
 
     public void markReturned(LocalDate returnDate) {
-        // TODO: restituzione
+        this.returnDate = returnDate;
     }
 
     @Override
@@ -75,5 +76,10 @@ public class Loan implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    @Override
+    public String toString(){
+        return "Loan id=" + id + ", readerId=" + readerId + ", isbn=" + isbn;
     }
 }
