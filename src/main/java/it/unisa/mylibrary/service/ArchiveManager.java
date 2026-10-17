@@ -16,20 +16,37 @@ public class ArchiveManager {
         this.autosavePath = autPath;
     }
 
-    public void loadAutosave() throws LibraryException {
-        // TODO: logica di ripristino
+    public boolean loadAutosave() throws LibraryException {
+        if (storage.exists(autosavePath)) {
+            try {
+                Archive loaded = storage.load(autosavePath);
+                archive.replaceContentWith(loaded);
+                return true;
+            } catch (LibraryException ex) {
+                autosaveEnabled = false;
+                throw new LibraryException("Il file di autosalvataggio è corrotto o incompatibile.\nL'autosalvataggio disattivato per questa sessione per evitare la perdita di dati.", ex);
+            }
+        }
+        return false;
     }
 
     public void executeAutosave() {
-        // TODO: salvataggio silente
+        if (autosaveEnabled) {
+            try {
+                storage.save(archive, autosavePath);
+            } catch (LibraryException ex) {
+                System.err.println("Impossibile creare l'autosalvataggio: " + ex.getMessage());
+            }
+        }
     }
 
     public void loadFromFile(Path path) throws LibraryException {
-        // TODO: caricamento da file utente
-    }
+        Archive archivioCaricato = storage.load(path);
+        archive.replaceContentWith(archivioCaricato);
+        autosaveEnabled = true;    }
 
     public void saveToFile(Path path) throws LibraryException {
-        // TODO:salvataggio forzato
+        storage.save(archive, path);
     }
 
     public boolean isAutosaveEnabled() {

@@ -25,7 +25,21 @@ public class Archive implements Serializable {
         return loans; //i prestiti nel sistema
     }
 
-    public void replaceContentWith(Archive other) {
-        // TODO: da implementare per mantenere riferimento dei service e viste sostituendo il contenuto con nuovo cntenuto (vedi appunto 2)
+    public void replaceContentWith(Archive altroArchivio) {
+        if (altroArchivio == this) {
+            return;
+        } //prendo la mappa e la rimpazzo semplicemente
+        Map<String,Book> newBooks = new HashMap<>(altroArchivio.books);
+        Map<String, Reader> newReaders = new HashMap<>(altroArchivio.readers);
+        List<Loan> newLoans = new ArrayList<>(altroArchivio.loans);
+
+        books.clear();
+        readers.clear();
+        loans.clear();
+
+        books.putAll(newBooks);
+        readers.putAll(newReaders);
+        loans.addAll(newLoans);
+
     }
 }
