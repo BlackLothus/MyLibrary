@@ -49,23 +49,23 @@ public class LoanService {
         }
         return book.getTotalCopies() - getActiveLoansOfBook(isbn).size();
     }
- //tolgo il throws che è un unchecked
+
     public Loan registerLoan(String readerId, String isbn, LocalDate dueDate) {
         //ho notato che lo chiamo due volte, lo semplifico qui  con "prestitiAttivi":
         List<Loan> prestitiAttivi = getActiveLoansOfReader(readerId);
 
         LocalDate today = today();
         LocalDate finalDueDate = (dueDate == null)
-                ? defaultDueDate()  //metto 15 se non specificato
+                ? defaultDueDate()  //metto 15 se non specificato RD12
                 : dueDate;
 
-        if (!archive.getReaders().containsKey(readerId)) { //se non contiene il reader, quello sotto per isbn
+        if (!archive.getReaders().containsKey(readerId)) {
             throw new LibraryException("Lettore inesistente.");
         }
         if (!archive.getBooks().containsKey(isbn)) {
             throw new LibraryException("Libro inesistente.");
         }
-        for (Loan prestito : prestitiAttivi) { //scorro i prestiti, se ne trovo uno con stesso isbn lancio ex
+        for (Loan prestito : prestitiAttivi) { //RD14
             if (prestito.getIsbn().equals(isbn)) {
                 throw new LibraryException("Il lettore ha già in carico una copia di questo libro");
             }
@@ -84,10 +84,10 @@ public class LoanService {
         archive.getLoans().add(loan); //carico il prestito
         return loan;
     }
- //di seguito userò stream API, visto che userò loan di archive che è una lista posso farlo in modo natuale senza dover prendere pirma chiave/vaore
+ //stream API
     public void returnLoan(String loanId) {
         Loan loan = archive.getLoans().stream()
-                .filter(l -> l.getId().equals(loanId)) //filter(Predicate<? super T> predicate) va
+                .filter(l -> l.getId().equals(loanId)) //filter(Predicate<? super T> predicate)
                 .findFirst()
                 .orElseThrow(() -> new LibraryException("Prestito inesistente."));
 
@@ -99,12 +99,11 @@ public class LoanService {
 
     public List<Loan> getReturnedLoansOfReader(String readerId) {
         return archive.getLoans().stream()
-                .filter(l -> !l.isActive())
-                .filter(l -> l.getReaderId().equals(readerId))
-                .sorted(Comparator.comparing(Loan::getReturnDate).reversed())
-                .collect(Collectors.toList());
+                .filter(l -> !l.isActive()) // solo prestiti conclusi
+                .filter(l -> l.getReaderId().equals(readerId)) //prendo solo quelli del lettore speciffico
+                .sorted(Comparator.comparing(Loan::getReturnDate).reversed()) //li metto in ordine
+                .collect(Collectors.toList()); //li metto in una lista
     }
-
     public List<Loan> getActiveLoansSortedByDueDate() {
         return archive.getLoans().stream()
                 .filter(Loan::isActive)

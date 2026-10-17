@@ -25,7 +25,7 @@ public class Book implements Serializable {
         this.year = year;
         this.totalCopies = totalCopies;
     }
-    public String normalizeIsbn (String rawIsbn){
+    public static String normalizeIsbn (String rawIsbn){
         if (rawIsbn == null){
             return null;
         }
