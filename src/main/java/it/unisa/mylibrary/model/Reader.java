@@ -59,4 +59,9 @@ public class Reader implements Serializable {
     public int hashCode() {
         return Objects.hash(studentId);
     }
+    @Override
+    public String toString() {
+        return "Reader studentId=" + studentId + ", name=" + firstName + " " + lastName;
+    }
+
 }

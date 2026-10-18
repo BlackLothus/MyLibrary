@@ -80,6 +80,6 @@ public class Loan implements Serializable {
 
     @Override
     public String toString(){
-        return "Loan id=" + id + ", readerId=" + readerId + ", isbn=" + isbn;
+        return "Loan id= " + id + ",readerId=" + readerId + ", isbn=" + isbn;
     }
 }
