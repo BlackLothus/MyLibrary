@@ -14,7 +14,9 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.util.StringConverter;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 public final class UiUtils {
@@ -30,6 +32,28 @@ public final class UiUtils {
         throw new AssertionError("Classe di utility! Non va istanziata ^.^");
     }
 
+    public static StringConverter<LocalDate> createDateConverter() {
+        return new StringConverter<LocalDate>() {
+            @Override
+            public String toString(LocalDate date) {
+                if (date != null) {
+                    return DATE_FMT.format(date);
+                }
+                return "";
+            }
+            @Override
+            public LocalDate fromString(String string) {
+                if (string != null && !string.trim().isEmpty()) {
+                    try {
+                        return LocalDate.parse(string, DATE_FMT);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                }
+                return null;
+            }
+        };
+    }
     public static void addInfoRow(GridPane g, int row, String label, String value) {
         Label l = new Label(label + ":");
         l.setFont(Font.font(null, FontWeight.BOLD, -1));

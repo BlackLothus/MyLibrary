@@ -1,3 +1,5 @@
+// src/main/java/it/unisa/mylibrary/ui/ReaderDetailDialog.java
+
 package it.unisa.mylibrary.ui;
 
 import it.unisa.mylibrary.exception.LibraryException;
@@ -31,8 +33,8 @@ public class ReaderDetailDialog extends Dialog<Boolean> {
     private final ReaderService readerService;
     private final LoanService loanService;
 
-    private VBox loansContainer;
-    private VBox historyContainer;
+    private VBox activeLoansBox;
+    private VBox historyBox;
 
     public ReaderDetailDialog(Reader reader, BookService bookService, ReaderService readerService, LoanService loanService) {
         this.reader = reader;
@@ -46,55 +48,58 @@ public class ReaderDetailDialog extends Dialog<Boolean> {
         UiUtils.setupCloseableReadOnlyDialog(this);
         setResultConverter(dialogButton -> false);
 
-        getDialogPane().setContent(buildContent());
+        getDialogPane().setContent(buildMainPanel());
         getDialogPane().setPrefWidth(620);
     }
 
-    private VBox buildContent() {
-        loansContainer = new VBox();
-        historyContainer = new VBox();
-        reloadUI();
+    private VBox buildMainPanel() {
+        activeLoansBox = new VBox();
+        historyBox = new VBox();
+        refreshViews();
 
-        VBox root = new VBox(14, buildInfoGrid(), buildActionButtons(), loansContainer, historyContainer);
+        VBox root = new VBox(14, buildInfoGrid(), buildActionButtons(), activeLoansBox, historyBox);
         root.setPadding(new Insets(10));
         return root;
     }
 
-    private void reloadUI() {
-        reloadLoansUI();
-        reloadHistoryUI();
+    private void refreshViews() {
+        loadActiveLoansTable();
+        loadHistoryTable();
     }
 
     private GridPane buildInfoGrid() {
-        GridPane g = new GridPane();
-        g.setHgap(12);
-        g.setVgap(6);
-        int r = 0;
-        UiUtils.addInfoRow(g, r++, "Matricola", reader.getStudentId());
-        UiUtils.addInfoRow(g, r++, "Nome", reader.getFirstName());
-        UiUtils.addInfoRow(g, r++, "Cognome", reader.getLastName());
-        UiUtils.addInfoRow(g, r++, "Email", reader.getEmail());
-        return g;
+        GridPane grid = new GridPane();
+        grid.setHgap(12);
+        grid.setVgap(6);
+        int row = 0;
+        UiUtils.addInfoRow(grid, row++, "Matricola", reader.getStudentId());
+        UiUtils.addInfoRow(grid, row++, "Nome", reader.getFirstName());
+        UiUtils.addInfoRow(grid, row++, "Cognome", reader.getLastName());
+        UiUtils.addInfoRow(grid, row++, "Email", reader.getEmail());
+        return grid;
     }
 
     private HBox buildActionButtons() {
-        Button btnEdit = new Button("Modifica");
-        Button btnDelete = new Button("Elimina");
+        Button editBtn = new Button("Modifica");
+        Button deleteBtn = new Button("Elimina");
 
-        btnEdit.setOnAction(e -> onEdit());
-        btnDelete.setOnAction(e -> onDelete());
+        editBtn.setOnAction(e -> onEdit());
+        deleteBtn.setOnAction(e -> onDelete());
 
-        HBox box = new HBox(10, btnEdit, btnDelete);
+        HBox box = new HBox(10, editBtn, deleteBtn);
         box.setAlignment(Pos.CENTER_LEFT);
         return box;
     }
 
     private void onEdit() {
-        Reader current = reader;
-        boolean success = false;
+        Reader currentReader = reader;
+        boolean isCompleted = false;
 
-        while (!success) {
-            ReaderFormDialog dialog = new ReaderFormDialog(current, true);
+        while (!isCompleted) {
+            ReaderFormDialog dialog = new ReaderFormDialog(currentReader, true);
+            if (getDialogPane().getScene() != null) {
+                dialog.initOwner(getDialogPane().getScene().getWindow());
+            }
             Optional<Reader> result = dialog.showAndWait();
             if (result.isEmpty()) {
                 return;
@@ -104,19 +109,20 @@ public class ReaderDetailDialog extends Dialog<Boolean> {
                 readerService.updateReader(result.get());
                 setResult(true);
                 close();
-                success = true;
+                isCompleted = true;
             } catch (LibraryException ex) {
                 Alerts.showError(UiUtils.DOMAIN_ERROR_TITLE, ex.getMessage());
-                current = result.get();
+                currentReader = result.get();
             }
         }
     }
 
     private void onDelete() {
-        String message = "Eliminare il lettore " + reader.getLastName() + " " + reader.getFirstName() + " (matricola " + reader.getStudentId() + ")?";
-        if (!Alerts.showConfirm("Conferma Eliminazione", message)) {
+        String msg = "Eliminare il lettore " + reader.getLastName() + " " + reader.getFirstName() + " (matricola " + reader.getStudentId() + ")?";
+        if (!Alerts.showConfirm("Conferma Eliminazione", msg)) {
             return;
         }
+
         try {
             readerService.removeReader(reader.getStudentId());
             setResult(true);
@@ -126,25 +132,25 @@ public class ReaderDetailDialog extends Dialog<Boolean> {
         }
     }
 
-    private void reloadLoansUI() {
-        loansContainer.getChildren().clear();
+    private void loadActiveLoansTable() {
+        activeLoansBox.getChildren().clear();
 
         Label title = new Label("Prestiti attivi (Max " + LoanService.MAX_ACTIVE_LOANS + ")");
         title.setFont(Font.font(null, FontWeight.BOLD, 14));
 
-        VBox tableBox = new VBox();
-        tableBox.setStyle("-fx-border-color: #ccc; -fx-background-color: white;");
+        VBox tableContainer = new VBox();
+        tableContainer.setStyle("-fx-border-color: #ccc; -fx-background-color: white;");
 
         HBox header = new HBox(10);
         header.setPadding(new Insets(8));
         header.setStyle("-fx-background-color: #e0e0e0; -fx-border-color: #ccc; -fx-border-width: 0 0 1 0;");
 
-        Label hTitle = new Label("Titolo"); hTitle.setPrefWidth(220); hTitle.setFont(Font.font(null, FontWeight.BOLD, 12));
-        Label hStart = new Label("Inizio"); hStart.setPrefWidth(90); hStart.setFont(Font.font(null, FontWeight.BOLD, 12));
-        Label hDue = new Label("Scadenza"); hDue.setPrefWidth(90); hDue.setFont(Font.font(null, FontWeight.BOLD, 12));
-        Label hAction = new Label("Azione"); hAction.setPrefWidth(80); hAction.setFont(Font.font(null, FontWeight.BOLD, 12));
-        header.getChildren().addAll(hTitle, hStart, hDue, hAction);
-        tableBox.getChildren().add(header);
+        Label colTitle = new Label("Titolo"); colTitle.setPrefWidth(220); colTitle.setFont(Font.font(null, FontWeight.BOLD, 12));
+        Label colStart = new Label("Inizio"); colStart.setPrefWidth(90); colStart.setFont(Font.font(null, FontWeight.BOLD, 12));
+        Label colDue = new Label("Scadenza"); colDue.setPrefWidth(90); colDue.setFont(Font.font(null, FontWeight.BOLD, 12));
+        Label colAction = new Label("Azione"); colAction.setPrefWidth(80); colAction.setFont(Font.font(null, FontWeight.BOLD, 12));
+        header.getChildren().addAll(colTitle, colStart, colDue, colAction);
+        tableContainer.getChildren().add(header);
 
         List<Loan> activeLoans = loanService.getActiveLoansOfReader(reader.getStudentId());
 
@@ -171,36 +177,40 @@ public class ReaderDetailDialog extends Dialog<Boolean> {
                     row.setStyle(row.getStyle() + UiUtils.OVERDUE_STYLE);
                 }
 
-                Button btnReturn = new Button("Restituisci");
-                btnReturn.setPrefWidth(80);
-                btnReturn.setOnAction(e -> onReturn(loan));
+                Button returnBtn = new Button("Restituisci");
+                returnBtn.setPrefWidth(80);
+                returnBtn.setOnAction(e -> {
+                    if (UiUtils.executeReturnLoan(loan, loanService, bookTitle)) {
+                        refreshViews();
+                    }
+                });
 
-                row.getChildren().addAll(lblTitle, lblStart, lblDue, btnReturn);
+                row.getChildren().addAll(lblTitle, lblStart, lblDue, returnBtn);
             } else {
-                Label lblEmpty = new Label("-~- Slot disponibile -~-");
-                lblEmpty.setPrefWidth(420);
-                lblEmpty.setAlignment(Pos.CENTER);
-                lblEmpty.setStyle("-fx-text-fill: #999; -fx-font-style: italic;");
+                Label emptyLbl = new Label("--- Slot disponibile ---");
+                emptyLbl.setPrefWidth(420);
+                emptyLbl.setAlignment(Pos.CENTER);
+                emptyLbl.setStyle("-fx-text-fill: #999; -fx-font-style: italic;");
 
-                Button btnAdd = new Button("+");
-                btnAdd.setPrefWidth(80);
-                btnAdd.setStyle("-fx-font-weight: bold; -fx-text-fill: #2e7d32;");
-                // LoanFormDialog da collegare
+                Button newLoanBtn = new Button("+");
+                newLoanBtn.setPrefWidth(80);
+                newLoanBtn.setStyle("-fx-font-weight: bold; -fx-text-fill: #2e7d32;");
+                newLoanBtn.setOnAction(e -> onNewLoan());
 
-                row.getChildren().addAll(lblEmpty, btnAdd);
+                row.getChildren().addAll(emptyLbl, newLoanBtn);
             }
-            tableBox.getChildren().add(row);
+            tableContainer.getChildren().add(row);
         }
 
-        loansContainer.getChildren().addAll(title, tableBox);
+        activeLoansBox.getChildren().addAll(title, tableContainer);
     }
 
-    private void reloadHistoryUI() {
-        historyContainer.getChildren().clear();
+    private void loadHistoryTable() {
+        historyBox.getChildren().clear();
 
-        List<Loan> historyLoans = loanService.getReturnedLoansOfReader(reader.getStudentId());
+        List<Loan> returnedLoans = loanService.getReturnedLoansOfReader(reader.getStudentId());
 
-        Label title = new Label("Storico prestiti conclusi (" + historyLoans.size() + ")");
+        Label title = new Label("Storico prestiti conclusi (" + returnedLoans.size() + ")");
         title.setFont(Font.font(null, FontWeight.BOLD, 14));
 
         TableView<Loan> table = new TableView<>();
@@ -221,22 +231,27 @@ public class ReaderDetailDialog extends Dialog<Boolean> {
         cReturn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getReturnDate().format(UiUtils.DATE_FMT)));
         cReturn.setSortable(false);
 
-        table.getColumns().addAll(java.util.List.of(cTitle, cStart, cDue, cReturn));
+        table.getColumns().addAll(cTitle, cStart, cDue, cReturn);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        table.setPlaceholder(new Label("Nessun prestito concluso"));
+        table.setPlaceholder(new Label("Nessun prestito concluso in archivio"));
         table.setPrefHeight(150);
 
-        table.getItems().setAll(historyLoans);
+        table.getItems().setAll(returnedLoans);
 
-        historyContainer.getChildren().addAll(title, table);
-        historyContainer.setSpacing(8);
-        historyContainer.setPadding(new Insets(10, 0, 0, 0));
+        historyBox.getChildren().addAll(title, table);
+        historyBox.setSpacing(8);
+        historyBox.setPadding(new Insets(10, 0, 0, 0));
     }
 
-    private void onReturn(Loan loan) {
-        String title = UiUtils.getBookTitle(loan.getIsbn(), bookService);
-        if (UiUtils.executeReturnLoan(loan, loanService, title)) {
-            reloadUI();
+    private void onNewLoan() {
+        LoanFormDialog dialog = new LoanFormDialog(reader, bookService, loanService);
+        if (getDialogPane().getScene() != null) {
+            dialog.initOwner(getDialogPane().getScene().getWindow());
+        }
+        dialog.showAndWait();
+
+        if (dialog.isLoanRegistered()) {
+            refreshViews();
         }
     }
 }

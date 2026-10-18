@@ -4,24 +4,64 @@ import it.unisa.mylibrary.model.Loan;
 import it.unisa.mylibrary.service.BookService;
 import it.unisa.mylibrary.service.LoanService;
 import it.unisa.mylibrary.service.ReaderService;
+
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+
+import java.util.List;
 
 public class LoansView extends BorderPane {
+
+    public enum SortMode {
+        DUE_DATE("Scadenza"),
+        START_DATE("Inizio");
+
+        private final String label;
+        SortMode(String label) {
+            this.label = label;
+        }
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
+
+    public static class LoanRow {
+        private final Loan loan;
+        private final String readerName;
+        private final String bookTitle;
+
+        public LoanRow(Loan loan, String readerName, String bookTitle) {
+            this.loan = loan;
+            this.readerName = readerName;
+            this.bookTitle = bookTitle;
+        }
+
+        public Loan getLoan() { return loan; }
+        public String getReaderName() { return readerName; }
+        public String getBookTitle() { return bookTitle; }
+    }
 
     private final LoanService loanService;
     private final BookService bookService;
     private final ReaderService readerService;
 
-    private final TableView<Loan> table = new TableView<>();
-    private final ComboBox<String> sortCombo = new ComboBox<>();
+    private final TableView<LoanRow> table = new TableView<>();
+    private final ComboBox<SortMode> sortCombo = new ComboBox<>();
+
+    private final Button detailBtn = new Button("Dettaglio");
+    private final Button returnBtn = new Button("Restituisci");
 
     public LoansView(LoanService loanService, BookService bookService, ReaderService readerService) {
         this.loanService = loanService;
@@ -30,36 +70,121 @@ public class LoansView extends BorderPane {
 
         buildTable();
 
-        sortCombo.getItems().addAll("Data di scadenza", "Data di inizio");
-        sortCombo.setValue("Data di scadenza");
+        sortCombo.getItems().addAll(SortMode.DUE_DATE, SortMode.START_DATE);
+        sortCombo.setValue(SortMode.DUE_DATE);
+        sortCombo.setOnAction(e -> refresh());
 
-        Button detailButton = new Button("Dettaglio");
-        Button returnButton = new Button("Restituisci");
+        detailBtn.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
+        detailBtn.setOnAction(e -> openDetail());
 
-        HBox top = new HBox(10, new Label("Ordina per:"), sortCombo);
-        top.setAlignment(Pos.CENTER_LEFT);
-        top.setPadding(new Insets(10));
+        returnBtn.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
+        returnBtn.setOnAction(e -> onReturn());
 
-        HBox bottom = new HBox(10, detailButton, returnButton);
-        bottom.setAlignment(Pos.CENTER_RIGHT);
-        bottom.setPadding(new Insets(10));
+        table.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2 && table.getSelectionModel().getSelectedItem() != null) {
+                openDetail();
+            }
+        });
 
-        setTop(top);
+        HBox topBar = new HBox(10, new Label("Ordina per:"), sortCombo);
+        topBar.setAlignment(Pos.CENTER_LEFT);
+        topBar.setPadding(new Insets(10));
+
+        HBox bottomBar = new HBox(10, detailBtn, returnBtn);
+        bottomBar.setAlignment(Pos.CENTER_RIGHT);
+        bottomBar.setPadding(new Insets(10));
+
+        setTop(topBar);
         setCenter(table);
-        setBottom(bottom);
+        setBottom(bottomBar);
+
+        refresh();
     }
 
     private void buildTable() {
-        TableColumn<Loan, String> readerCol = new TableColumn<>("Lettore");
-        TableColumn<Loan, String> titleCol = new TableColumn<>("Libro");
-        TableColumn<Loan, String> startCol = new TableColumn<>("Inizio");
-        TableColumn<Loan, String> dueCol = new TableColumn<>("Scadenza");
+        TableColumn<LoanRow, String> readerCol = new TableColumn<>("Lettore");
+        readerCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getReaderName()));
+        readerCol.setPrefWidth(200);
+        readerCol.setSortable(false);
+
+        TableColumn<LoanRow, String> titleCol = new TableColumn<>("Libro");
+        titleCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getBookTitle()));
+        titleCol.setPrefWidth(300);
+        titleCol.setSortable(false);
+
+        TableColumn<LoanRow, String> startCol = new TableColumn<>("Inizio");
+        startCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getLoan().getStartDate().format(UiUtils.DATE_FMT)));
+        startCol.setPrefWidth(110);
+        startCol.setSortable(false);
+
+        TableColumn<LoanRow, String> dueCol = new TableColumn<>("Scadenza");
+        dueCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getLoan().getDueDate().format(UiUtils.DATE_FMT)));
+        dueCol.setPrefWidth(110);
+        dueCol.setSortable(false);
 
         table.getColumns().addAll(readerCol, titleCol, startCol, dueCol);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        table.setPlaceholder(new Label("Nessun prestito attivo"));
+
+        table.setRowFactory(tv -> new TableRow<>() {
+            {
+                selectedProperty().addListener((obs, was, is) -> updateRowStyle());
+            }
+            @Override
+            protected void updateItem(LoanRow item, boolean empty) {
+                super.updateItem(item, empty);
+                updateRowStyle();
+            }
+            private void updateRowStyle() {
+                LoanRow rowItem = getItem();
+                if (!isEmpty() && rowItem != null) {
+                    if (loanService.isOverdue(rowItem.getLoan()) && !isSelected()) {
+                        setStyle(UiUtils.OVERDUE_STYLE);
+                    } else {
+                        setStyle("");
+                    }
+                } else {
+                    setStyle("");
+                }
+            }
+        });
     }
 
     public void refresh() {
-        // aggiornamento tabella da implementare
+        List<Loan> activeLoans;
+        if (sortCombo.getValue() == SortMode.START_DATE) {
+            activeLoans = loanService.getActiveLoansSortedByStartDate();
+        } else {
+            activeLoans = loanService.getActiveLoansSortedByDueDate();
+        }
+
+        ObservableList<LoanRow> rows = FXCollections.observableArrayList();
+        for (Loan loan : activeLoans) {
+            String readerName = UiUtils.getReaderName(loan.getReaderId(), readerService);
+            String bookTitle = UiUtils.getBookTitle(loan.getIsbn(), bookService);
+            rows.add(new LoanRow(loan, readerName, bookTitle));
+        }
+        table.setItems(rows);
+    }
+
+    private void openDetail() {
+        LoanRow selected = table.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            LoanDetailDialog dialog = new LoanDetailDialog(selected.getLoan(), bookService, readerService, loanService);
+            dialog.showAndWait();
+            if (dialog.isActionTaken()) {
+                refresh();
+            }
+        }
+    }
+
+    private void onReturn() {
+        LoanRow selected = table.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            boolean success = UiUtils.executeReturnLoan(selected.getLoan(), loanService, selected.getBookTitle());
+            if (success) {
+                refresh();
+            }
+        }
     }
 }
