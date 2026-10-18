@@ -1,12 +1,21 @@
 package it.unisa.mylibrary.ui;
 
+import it.unisa.mylibrary.exception.LibraryException;
 import it.unisa.mylibrary.model.Reader;
 import it.unisa.mylibrary.service.BookService;
 import it.unisa.mylibrary.service.LoanService;
 import it.unisa.mylibrary.service.ReaderService;
+
+import java.util.List;
+import java.util.Optional;
+
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -21,33 +30,82 @@ public class ReadersView extends BorderPane {
     private final LoanService loanService;
 
     private final TextField searchField = new TextField();
-    private final TableView<Reader> table = new TableView<>();
+    private final ObservableList<Reader> items = FXCollections.observableArrayList();
+    private final TableView<Reader> table = new TableView<>(items);
+
+    private final Button detailBtn = new Button("Scheda Lettore");
+    private final Button newButton = new Button("Nuovo");
 
     public ReadersView(ReaderService readerService, BookService bookService, LoanService loanService) {
         this.readerService = readerService;
         this.bookService = bookService;
         this.loanService = loanService;
         buildUi();
+        refresh();
+    }
+
+    public void refresh() {
+        Reader selected = table.getSelectionModel().getSelectedItem();
+        String selectedId = selected != null ? selected.getStudentId() : null;
+
+        try {
+            String query = searchField.getText() == null ? "" : searchField.getText().trim();
+            List<Reader> readers = query.isEmpty() ? readerService.getAllSortedByName() : readerService.search(query);
+            items.setAll(readers);
+        } catch (LibraryException e) {
+            Alerts.showError("Errore di Lettura", e.getMessage());
+            return;
+        }
+
+        if (selectedId != null) {
+            for (Reader r : items) {
+                if (selectedId.equals(r.getStudentId())) {
+                    table.getSelectionModel().select(r);
+                    break;
+                }
+            }
+        }
     }
 
     private void buildUi() {
         setPadding(new Insets(12));
 
         searchField.setPromptText("Cerca per cognome o matricola...");
+        searchField.textProperty().addListener((obs, oldValue, newValue) -> refresh());
         HBox.setHgrow(searchField, Priority.ALWAYS);
         HBox searchBox = new HBox(searchField);
         searchBox.setPadding(new Insets(0, 0, 10, 0));
 
         TableColumn<Reader, String> idCol = new TableColumn<>("Matricola");
+        idCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getStudentId()));
+        idCol.setSortable(false);
+
         TableColumn<Reader, String> lastNameCol = new TableColumn<>("Cognome");
+        lastNameCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getLastName()));
+        lastNameCol.setSortable(false);
+
         TableColumn<Reader, String> firstNameCol = new TableColumn<>("Nome");
-        TableColumn<Reader, String> emailCol = new TableColumn<>("E-mail");
+        firstNameCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getFirstName()));
+        firstNameCol.setSortable(false);
+
+        TableColumn<Reader, String> emailCol = new TableColumn<>("Email");
+        emailCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEmail()));
+        emailCol.setSortable(false);
 
         table.getColumns().addAll(idCol, lastNameCol, firstNameCol, emailCol);
-        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        table.setPlaceholder(new Label("Nessun lettore trovato"));
 
-        Button detailBtn = new Button("Scheda Lettore");
-        Button newButton = new Button("Nuovo");
+        detailBtn.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
+
+        detailBtn.setOnAction(e -> openDetail());
+        newButton.setOnAction(e -> onNew());
+
+        table.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2 && table.getSelectionModel().getSelectedItem() != null) {
+                openDetail();
+            }
+        });
 
         HBox buttons = new HBox(10, detailBtn, newButton);
         buttons.setAlignment(Pos.CENTER_RIGHT);
@@ -58,7 +116,40 @@ public class ReadersView extends BorderPane {
         setBottom(buttons);
     }
 
-    public void refresh() {
-        // aggiornamento tabella da implementare
+    private void openDetail() {
+        Reader r = table.getSelectionModel().getSelectedItem();
+        if (r == null) {
+            return;
+        }
+        ReaderDetailDialog dialog = new ReaderDetailDialog(r, bookService, readerService, loanService);
+        dialog.showAndWait().ifPresent(actionTaken -> {
+            if (actionTaken) {
+                refresh();
+            }
+        });
+    }
+
+    private void onNew() {
+        Reader current = null;
+        boolean success = false;
+        while (!success) {
+            ReaderFormDialog dialog = new ReaderFormDialog(current, false);
+            if (getScene() != null) {
+                dialog.initOwner(getScene().getWindow());
+            }
+            Optional<Reader> result = dialog.showAndWait();
+            if (result.isEmpty()) {
+                return;
+            }
+            Reader reader = result.get();
+            try {
+                readerService.addReader(reader);
+                refresh();
+                success = true;
+            } catch (LibraryException e) {
+                Alerts.showError(UiUtils.DOMAIN_ERROR_TITLE, e.getMessage());
+                current = reader;
+            }
+        }
     }
 }
