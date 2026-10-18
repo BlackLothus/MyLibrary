@@ -20,10 +20,13 @@ public class BookFormDialog extends Dialog<Book> {
 
     private Book resultBook = null;
     private final Book initial;
+    private boolean saving = false;
 
     public BookFormDialog(Book initial, boolean editMode) {
         this.initial = initial;
-        setTitle(editMode ? "Modifica Libro" : "Aggiungi Libro");
+        setTitle(editMode
+                ? "Modifica Libro"
+                : "Aggiungi Libro");
 
         ButtonType btnSaveType = new ButtonType("Salva", ButtonBar.ButtonData.OK_DONE);
         ButtonType btnCancelType = new ButtonType("Annulla", ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -65,6 +68,7 @@ public class BookFormDialog extends Dialog<Book> {
                         .collect(Collectors.toList());
 
                 resultBook = new Book(txtIsbn.getText().trim(), txtTitle.getText().trim(), authors, year, copies);
+                saving = true;
             } catch (NumberFormatException ex) {
                 event.consume();
                 Alerts.showError("Errore di Formato", "Anno e Copie devono essere valori numerici validi");
@@ -72,7 +76,7 @@ public class BookFormDialog extends Dialog<Book> {
         });
 
         setOnCloseRequest(event -> {
-            if (hasUnsavedChanges() && !Alerts.showConfirm(UiUtils.UNSAVED_CHANGES_TITLE, UiUtils.UNSAVED_CHANGES_MSG)) {
+            if (!saving && hasUnsavedChanges() && !Alerts.showConfirm(UiUtils.UNSAVED_CHANGES_TITLE, UiUtils.UNSAVED_CHANGES_MSG)) {
                 event.consume();
             }
         });

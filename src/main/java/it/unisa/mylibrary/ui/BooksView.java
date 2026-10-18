@@ -96,7 +96,7 @@ public class BooksView extends VBox {
         colAvailable.setSortable(false);
 
         table.getColumns().addAll(colIsbn, colTitle, colAuthors, colYear, colCopies, colAvailable);
-        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         table.setPlaceholder(new Label("Nessun risultato"));
 
         VBox.setVgrow(table, Priority.ALWAYS);

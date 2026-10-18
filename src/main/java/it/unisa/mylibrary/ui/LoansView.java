@@ -56,7 +56,7 @@ public class LoansView extends BorderPane {
         TableColumn<Loan, String> dueCol = new TableColumn<>("Scadenza");
 
         table.getColumns().addAll(readerCol, titleCol, startCol, dueCol);
-        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
     }
 
     public void refresh() {
