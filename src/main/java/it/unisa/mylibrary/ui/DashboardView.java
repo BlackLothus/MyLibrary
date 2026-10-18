@@ -1,5 +1,6 @@
 package it.unisa.mylibrary.ui;
 
+import it.unisa.mylibrary.model.Book;
 import it.unisa.mylibrary.service.BookService;
 import it.unisa.mylibrary.service.LoanService;
 import it.unisa.mylibrary.service.ReaderService;
@@ -41,6 +42,7 @@ public class DashboardView extends VBox {
         grid.add(createCard("Volumi a Catalogo", booksLabel), 1, 1);
 
         getChildren().addAll(title, grid);
+        refresh();
     }
 
     private VBox createCard(String title, Label valueLabel) {
@@ -55,6 +57,18 @@ public class DashboardView extends VBox {
     }
 
     public void refresh() {
-        // provvisorio:da implementare con i contatori reali dei service
+        long activeLoans = loanService.getActiveLoansSortedByDueDate().size();
+        long overdueLoans = loanService.getActiveLoansSortedByDueDate().stream()
+                .filter(loanService::isOverdue)
+                .count();
+        long readers = readerService.getAllSortedByName().size();
+        long books = bookService.getAllSortedByTitle().stream()
+                .mapToInt(Book::getTotalCopies)
+                .sum();
+
+        activeLoansLabel.setText(String.valueOf(activeLoans));
+        overdueLoansLabel.setText(String.valueOf(overdueLoans));
+        readersLabel.setText(String.valueOf(readers));
+        booksLabel.setText(String.valueOf(books));
     }
 }

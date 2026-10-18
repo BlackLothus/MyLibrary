@@ -2,11 +2,16 @@ package it.unisa.mylibrary;
 
 import it.unisa.mylibrary.model.Archive;
 import it.unisa.mylibrary.persistence.ArchiveStorage;
-import it.unisa.mylibrary.service.*;
+import it.unisa.mylibrary.service.LibraryStorage;
+import it.unisa.mylibrary.service.ArchiveManager;
+import it.unisa.mylibrary.service.BookService;
+import it.unisa.mylibrary.service.LoanService;
+import it.unisa.mylibrary.service.ReaderService;
 import it.unisa.mylibrary.ui.BooksView;
 import it.unisa.mylibrary.ui.DashboardView;
 import it.unisa.mylibrary.ui.LoansView;
 import it.unisa.mylibrary.ui.ReadersView;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -46,27 +51,40 @@ public class App extends Application {
 
         Button btnDashboard = new Button("Bacheca");
         btnDashboard.setMaxWidth(Double.MAX_VALUE);
-        btnDashboard.setOnAction(e -> root.setCenter(dashboardView));
+        btnDashboard.setOnAction(e -> {
+            dashboardView.refresh();
+            root.setCenter(dashboardView);
+        });
 
         Button btnBooks = new Button("Catalogo Libri");
         btnBooks.setMaxWidth(Double.MAX_VALUE);
-        btnBooks.setOnAction(e -> root.setCenter(booksView));
+        btnBooks.setOnAction(e -> {
+            booksView.refresh();
+            root.setCenter(booksView);
+        });
 
         Button btnReaders = new Button("Anagrafica Lettori");
         btnReaders.setMaxWidth(Double.MAX_VALUE);
-        btnReaders.setOnAction(e -> root.setCenter(readersView));
+        btnReaders.setOnAction(e -> {
+            readersView.refresh();
+            root.setCenter(readersView);
+        });
 
         Button btnLoans = new Button("Gestione Prestiti");
         btnLoans.setMaxWidth(Double.MAX_VALUE);
-        btnLoans.setOnAction(e -> root.setCenter(loansView));
+        btnLoans.setOnAction(e -> {
+            loansView.refresh();
+            root.setCenter(loansView);
+        });
 
         Button btnLoad = new Button("Carica Archivio...");
         btnLoad.setMaxWidth(Double.MAX_VALUE);
-        // da implementare con FileChooser
+        btnLoad.setDisable(true);
 
         Button btnSave = new Button("Salva con nome...");
         btnSave.setMaxWidth(Double.MAX_VALUE);
-        // da implementare con FileChooser
+        btnSave.setDisable(true);
+        // collegare entrambi al FileChooser
 
         sidebar.getChildren().addAll(btnDashboard, new Separator(), btnBooks, btnReaders, btnLoans, new Separator(), btnLoad, btnSave);
 
