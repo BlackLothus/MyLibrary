@@ -1,6 +1,7 @@
 package it.unisa.mylibrary.ui;
 
 import it.unisa.mylibrary.model.Book;
+import it.unisa.mylibrary.model.Loan;
 import it.unisa.mylibrary.service.BookService;
 import it.unisa.mylibrary.service.LoanService;
 import it.unisa.mylibrary.service.ReaderService;
@@ -9,6 +10,8 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
+
+import java.util.List;
 
 public class DashboardView extends VBox {
 
@@ -57,8 +60,10 @@ public class DashboardView extends VBox {
     }
 
     public void refresh() {
-        long activeLoans = loanService.getActiveLoansSortedByDueDate().size();
-        long overdueLoans = loanService.getActiveLoansSortedByDueDate().stream()
+        // calcolo i prestiti attivi una volta sola e la riuso per conteggio e ritardi
+        List<Loan> activeLoansList = loanService.getActiveLoansSortedByDueDate();
+        long activeLoans = activeLoansList.size();
+        long overdueLoans = activeLoansList.stream()
                 .filter(loanService::isOverdue)
                 .count();
         long readers = readerService.getAllSortedByName().size();

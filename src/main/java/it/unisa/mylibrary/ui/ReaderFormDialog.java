@@ -1,9 +1,7 @@
 package it.unisa.mylibrary.ui;
 
 import it.unisa.mylibrary.model.Reader;
-import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
@@ -21,7 +19,6 @@ public class ReaderFormDialog extends Dialog<Reader> {
     private final TextField emailField = new TextField();
 
     private final Reader initial;
-    private boolean saving = false;
 
     public ReaderFormDialog(Reader initial, boolean editMode) {
         this.initial = initial;
@@ -30,7 +27,7 @@ public class ReaderFormDialog extends Dialog<Reader> {
                 : "Nuovo lettore");
         setHeaderText(editMode
                 ? "Modifica i dati del lettore"
-                : "inserisci i dati del nuovo lettore");
+                : "Inserisci i dati del nuovo lettore");
 
         if (initial != null) {
             studentIdField.setText(initial.getStudentId());
@@ -66,16 +63,8 @@ public class ReaderFormDialog extends Dialog<Reader> {
         ButtonType cancelType = new ButtonType("Annulla", ButtonBar.ButtonData.CANCEL_CLOSE);
         getDialogPane().getButtonTypes().addAll(saveType, cancelType);
 
-        Button saveButton = (Button) getDialogPane().lookupButton(saveType);
-        saveButton.addEventFilter(ActionEvent.ACTION, event -> {
-            saving = true;
-        });
-
-        setOnCloseRequest(event -> {
-            if (!saving && hasUnsavedChanges() && !Alerts.showConfirm(UiUtils.UNSAVED_CHANGES_TITLE, UiUtils.UNSAVED_CHANGES_MSG)) {
-                event.consume();
-            }
-        });
+        // conferma su Annulla e sulla X se ci sono modifiche non salvate
+        UiUtils.installUnsavedChangesGuard(this, cancelType, this::hasUnsavedChanges, editMode ? lastNameField : studentIdField);
 
         setResultConverter(button -> {
             if (button == saveType) {

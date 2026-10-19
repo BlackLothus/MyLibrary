@@ -29,6 +29,7 @@ public class Alerts {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
+
         ButtonType btnOk = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
         ButtonType btnAnnulla = new ButtonType("Annulla", ButtonBar.ButtonData.CANCEL_CLOSE);
         alert.getButtonTypes().setAll(btnOk, btnAnnulla);

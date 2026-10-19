@@ -7,17 +7,23 @@ import it.unisa.mylibrary.service.BookService;
 import it.unisa.mylibrary.service.LoanService;
 import it.unisa.mylibrary.service.ReaderService;
 
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 import javafx.util.StringConverter;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.function.BooleanSupplier;
 
 public final class UiUtils {
 
@@ -70,6 +76,35 @@ public final class UiUtils {
             closeButton.setVisible(false);
             closeButton.setManaged(false);
         }
+    }
+    public static void installUnsavedChangesGuard(Dialog<?> dialog, ButtonType cancelType,
+                                                  BooleanSupplier hasDirtyChanges, Node initialFocus) {
+        // Annulla: chiedo conferma solo se c'è qualcosa di non salvato
+        Button cancelButton = (Button) dialog.getDialogPane().lookupButton(cancelType);
+        if (cancelButton != null) {
+            cancelButton.addEventFilter(ActionEvent.ACTION, event -> {
+                if (hasDirtyChanges.getAsBoolean() && !Alerts.showConfirm(UNSAVED_CHANGES_TITLE, UNSAVED_CHANGES_MSG)) {
+                    event.consume();
+                }
+            });
+        }
+
+        // stessa cosa per la "X" della finestra, più il focus iniziale
+        Platform.runLater(() -> {
+            if (dialog.getDialogPane().getScene() != null) {
+                Window window = dialog.getDialogPane().getScene().getWindow();
+                if (window != null) {
+                    window.addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, event -> {
+                        if (hasDirtyChanges.getAsBoolean() && !Alerts.showConfirm(UNSAVED_CHANGES_TITLE, UNSAVED_CHANGES_MSG)) {
+                            event.consume();
+                        }
+                    });
+                }
+            }
+            if (initialFocus != null) {
+                initialFocus.requestFocus();
+            }
+        });
     }
 
     public static String getReaderName(String readerId, ReaderService readerService) {

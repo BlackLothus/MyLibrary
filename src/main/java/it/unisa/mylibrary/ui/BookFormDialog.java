@@ -20,7 +20,6 @@ public class BookFormDialog extends Dialog<Book> {
 
     private Book resultBook = null;
     private final Book initial;
-    private boolean saving = false;
 
     public BookFormDialog(Book initial, boolean editMode) {
         this.initial = initial;
@@ -68,18 +67,14 @@ public class BookFormDialog extends Dialog<Book> {
                         .collect(Collectors.toList());
 
                 resultBook = new Book(txtIsbn.getText().trim(), txtTitle.getText().trim(), authors, year, copies);
-                saving = true;
             } catch (NumberFormatException ex) {
                 event.consume();
-                Alerts.showError("Errore di Formato", "Anno e Copie devono essere valori numerici validi");
+                Alerts.showError("Errore di formato:", "Anno e copie devono essere valori numerici interi validi");
             }
         });
 
-        setOnCloseRequest(event -> {
-            if (!saving && hasUnsavedChanges() && !Alerts.showConfirm(UiUtils.UNSAVED_CHANGES_TITLE, UiUtils.UNSAVED_CHANGES_MSG)) {
-                event.consume();
-            }
-        });
+        // conferma su Annulla e sulla X se ci sono modifiche non salvate
+        UiUtils.installUnsavedChangesGuard(this, btnCancelType, this::hasUnsavedChanges, editMode ? txtTitle : txtIsbn);
 
         setResultConverter(dialogButton -> {
             if (dialogButton == btnSaveType) {
