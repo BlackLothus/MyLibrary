@@ -76,21 +76,13 @@ public class ReadersView extends BorderPane {
         HBox searchBox = new HBox(searchField);
         searchBox.setPadding(new Insets(0, 0, 10, 0));
 
-        TableColumn<Reader, String> idCol = new TableColumn<>("Matricola");
-        idCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getStudentId()));
-        idCol.setSortable(false);
+        TableColumn<Reader, String> idCol = UiUtils.textColumn("Matricola", Reader::getStudentId);
 
-        TableColumn<Reader, String> lastNameCol = new TableColumn<>("Cognome");
-        lastNameCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getLastName()));
-        lastNameCol.setSortable(false);
+        TableColumn<Reader, String> lastNameCol = UiUtils.textColumn("Cognome", Reader::getLastName);
 
-        TableColumn<Reader, String> firstNameCol = new TableColumn<>("Nome");
-        firstNameCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getFirstName()));
-        firstNameCol.setSortable(false);
+        TableColumn<Reader, String> firstNameCol = UiUtils.textColumn("Nome", Reader::getFirstName);
 
-        TableColumn<Reader, String> emailCol = new TableColumn<>("Email");
-        emailCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEmail()));
-        emailCol.setSortable(false);
+        TableColumn<Reader, String> emailCol = UiUtils.textColumn("Email", Reader::getEmail);
 
         table.getColumns().addAll(idCol, lastNameCol, firstNameCol, emailCol);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
@@ -122,6 +114,7 @@ public class ReadersView extends BorderPane {
             return;
         }
         ReaderDetailDialog dialog = new ReaderDetailDialog(r, bookService, readerService, loanService);
+        UiUtils.setOwner(dialog, this);
         dialog.showAndWait().ifPresent(actionTaken -> {
             if (actionTaken) {
                 refresh();

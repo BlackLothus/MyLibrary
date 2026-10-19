@@ -102,25 +102,17 @@ public class LoansView extends BorderPane {
     }
 
     private void buildTable() {
-        TableColumn<LoanRow, String> readerCol = new TableColumn<>("Lettore");
-        readerCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getReaderName()));
+        TableColumn<LoanRow, String> readerCol = UiUtils.textColumn("Lettore", LoanRow::getReaderName);
         readerCol.setPrefWidth(200);
-        readerCol.setSortable(false);
 
-        TableColumn<LoanRow, String> titleCol = new TableColumn<>("Libro");
-        titleCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getBookTitle()));
+        TableColumn<LoanRow, String> titleCol = UiUtils.textColumn("Libro", LoanRow::getBookTitle);
         titleCol.setPrefWidth(300);
-        titleCol.setSortable(false);
 
-        TableColumn<LoanRow, String> startCol = new TableColumn<>("Inizio");
-        startCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getLoan().getStartDate().format(UiUtils.DATE_FMT)));
+        TableColumn<LoanRow, String> startCol = UiUtils.dateColumn("Inizio", r -> r.getLoan().getStartDate());
         startCol.setPrefWidth(110);
-        startCol.setSortable(false);
 
-        TableColumn<LoanRow, String> dueCol = new TableColumn<>("Scadenza");
-        dueCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getLoan().getDueDate().format(UiUtils.DATE_FMT)));
+        TableColumn<LoanRow, String> dueCol = UiUtils.dateColumn("Scadenza", r -> r.getLoan().getDueDate());
         dueCol.setPrefWidth(110);
-        dueCol.setSortable(false);
 
         table.getColumns().addAll(readerCol, titleCol, startCol, dueCol);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
@@ -171,6 +163,7 @@ public class LoansView extends BorderPane {
         LoanRow selected = table.getSelectionModel().getSelectedItem();
         if (selected != null) {
             LoanDetailDialog dialog = new LoanDetailDialog(selected.getLoan(), bookService, readerService, loanService);
+            UiUtils.setOwner(dialog, this);
             dialog.showAndWait();
             if (dialog.isActionTaken()) {
                 refresh();
