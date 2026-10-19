@@ -11,6 +11,12 @@ import static org.junit.jupiter.api.Assertions.*;
 class BookTest {
 
     @Test
+    void testAutoriSolaLettura() {
+        Book libro = new Book("111", "Titolo", Arrays.asList("Autore"), 2020, 1);
+        assertThrows(UnsupportedOperationException.class, () -> libro.getAuthors().add("Intruso"));
+    }
+
+    @Test
     void testNormalizzazioneIsbnValido() {
         assertEquals("885417238X", Book.normalizeIsbn(" 88-541-7238-x"));
     }
