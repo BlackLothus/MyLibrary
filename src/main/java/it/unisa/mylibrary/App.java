@@ -7,20 +7,24 @@ import it.unisa.mylibrary.service.ArchiveManager;
 import it.unisa.mylibrary.service.BookService;
 import it.unisa.mylibrary.service.LoanService;
 import it.unisa.mylibrary.service.ReaderService;
+import it.unisa.mylibrary.ui.Alerts;
 import it.unisa.mylibrary.ui.BooksView;
 import it.unisa.mylibrary.ui.DashboardView;
 import it.unisa.mylibrary.ui.LoansView;
 import it.unisa.mylibrary.ui.ReadersView;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.time.Clock;
 
@@ -38,6 +42,28 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        // gli errori inattesi li mostro in un alert, non solo in console
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            throwable.printStackTrace();
+            Platform.runLater(() -> {
+                String message = throwable.getMessage();
+                if (message == null || message.trim().isEmpty()) {
+                    message = throwable.getClass().getSimpleName();
+                }
+                Alerts.showError("Errore Imprevisto", "Si è verificato un errore di sistema inatteso:\n" + message);
+            });
+        });
+
+        // ripristino l'autosave; se non c'è (primo avvio) carico i dati demo
+        try {
+            boolean autosaveLoaded = archiveManager.loadAutosave();
+            if (!autosaveLoaded) {
+                DemoDataSeeder.seedIfEmpty(archive, bookService, readerService);
+            }
+        } catch (Exception ex) {
+            Alerts.showError("Avviso di sistema", ex.getMessage());
+        }
+
         BorderPane root = new BorderPane();
 
         DashboardView dashboardView = new DashboardView(bookService, readerService, loanService);
@@ -79,22 +105,71 @@ public class App extends Application {
 
         Button btnLoad = new Button("Carica Archivio...");
         btnLoad.setMaxWidth(Double.MAX_VALUE);
-        btnLoad.setDisable(true);
+        btnLoad.setOnAction(e -> loadArchive(primaryStage, dashboardView, booksView, readersView, loansView));
 
         Button btnSave = new Button("Salva con nome...");
         btnSave.setMaxWidth(Double.MAX_VALUE);
-        btnSave.setDisable(true);
-        // collegare entrambi al FileChooser
+        btnSave.setOnAction(e -> saveArchive(primaryStage));
 
         sidebar.getChildren().addAll(btnDashboard, new Separator(), btnBooks, btnReaders, btnLoans, new Separator(), btnLoad, btnSave);
 
         root.setLeft(sidebar);
         root.setCenter(dashboardView);
 
+        // autosave alla chiusura
+        primaryStage.setOnCloseRequest(e -> archiveManager.executeAutosave());
+
         Scene scene = new Scene(root, 1280, 720);
         primaryStage.setTitle("MyLibrary ~ Sistema Gestione Biblioteca");
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    private void loadArchive(Stage stage, DashboardView dashboardView, BooksView booksView, ReadersView readersView, LoansView loansView) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Carica Archivio Biblioteca");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("File DAT", "*.dat"));
+        File file = fileChooser.showOpenDialog(stage);
+
+        if (file != null) {
+            if (!Alerts.showConfirm("Conferma Caricamento", "Caricando un nuovo archivio, i dati attualmente in memoria andranno sovrascritti. Vuoi procedere?")) {
+                return;
+            }
+
+            try {
+                archiveManager.loadFromFile(file.toPath());
+                // aggiorno tutte le viste col nuovo contenuto
+                dashboardView.refresh();
+                booksView.refresh();
+                readersView.refresh();
+                loansView.refresh();
+                Alerts.showInfo("Caricamento completato", "Archivio caricato da " + file.getName());
+            } catch (Exception ex) {
+                Alerts.showError("Errore di caricamento", ex.getMessage());
+            }
+        }
+    }
+
+    private void saveArchive(Stage stage) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Salva Archivio Biblioteca");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("File DAT", "*.dat"));
+        File file = fileChooser.showSaveDialog(stage);
+
+        if (file != null) {
+            // forzo l'estensione .dat
+            String path = file.getAbsolutePath();
+            if (!path.toLowerCase().endsWith(".dat")) {
+                path += ".dat";
+            }
+
+            try {
+                archiveManager.saveToFile(Path.of(path));
+                Alerts.showInfo("Salvataggio Completato", "Archivio salvato con successo in:\n" + new File(path).getName());
+            } catch (Exception ex) {
+                Alerts.showError("Errore di Salvataggio", "Impossibile salvare il file:\n" + ex.getMessage());
+            }
+        }
     }
 
     public static void main(String[] args) {
