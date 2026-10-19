@@ -77,7 +77,7 @@ public class BookDetailDialog extends Dialog<Boolean> {
 
         while (!success) {
             BookFormDialog dialog = new BookFormDialog(current, true);
-            if (getDialogPane().getScene() != null) dialog.initOwner(getDialogPane().getScene().getWindow());
+            UiUtils.setOwner(dialog, getDialogPane());
             Optional<Book> result = dialog.showAndWait();
 
             if (result.isEmpty()) {
@@ -115,17 +115,11 @@ public class BookDetailDialog extends Dialog<Boolean> {
 
         TableView<Loan> table = new TableView<>();
 
-        TableColumn<Loan, String> cReader = new TableColumn<>("Lettore");
-        cReader.setCellValueFactory(c -> new SimpleStringProperty(UiUtils.getReaderName(c.getValue().getReaderId(), readerService)));
-        cReader.setSortable(false);
+        TableColumn<Loan, String> cReader = UiUtils.textColumn("Lettore", l -> UiUtils.getReaderName(l.getReaderId(), readerService));
 
-        TableColumn<Loan, String> cStart = new TableColumn<>("Inizio");
-        cStart.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getStartDate().format(UiUtils.DATE_FMT)));
-        cStart.setSortable(false);
+        TableColumn<Loan, String> cStart = UiUtils.dateColumn("Inizio", Loan::getStartDate);
 
-        TableColumn<Loan, String> cDue = new TableColumn<>("Scadenza");
-        cDue.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getDueDate().format(UiUtils.DATE_FMT)));
-        cDue.setSortable(false);
+        TableColumn<Loan, String> cDue = UiUtils.dateColumn("Scadenza", Loan::getDueDate);
 
         table.getColumns().addAll(cReader, cStart, cDue);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);

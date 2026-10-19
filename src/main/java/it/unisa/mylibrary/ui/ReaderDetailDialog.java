@@ -95,9 +95,7 @@ public class ReaderDetailDialog extends Dialog<Boolean> {
 
         while (!isCompleted) {
             ReaderFormDialog dialog = new ReaderFormDialog(currentReader, true);
-            if (getDialogPane().getScene() != null) {
-                dialog.initOwner(getDialogPane().getScene().getWindow());
-            }
+            UiUtils.setOwner(dialog, getDialogPane());
             Optional<Reader> result = dialog.showAndWait();
             if (result.isEmpty()) {
                 return;
@@ -213,21 +211,13 @@ public class ReaderDetailDialog extends Dialog<Boolean> {
 
         TableView<Loan> table = new TableView<>();
 
-        TableColumn<Loan, String> cTitle = new TableColumn<>("Libro");
-        cTitle.setCellValueFactory(c -> new SimpleStringProperty(UiUtils.getBookTitle(c.getValue().getIsbn(), bookService)));
-        cTitle.setSortable(false);
+        TableColumn<Loan, String> cTitle = UiUtils.textColumn("Libro", l -> UiUtils.getBookTitle(l.getIsbn(), bookService));
 
-        TableColumn<Loan, String> cStart = new TableColumn<>("Inizio");
-        cStart.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getStartDate().format(UiUtils.DATE_FMT)));
-        cStart.setSortable(false);
+        TableColumn<Loan, String> cStart = UiUtils.dateColumn("Inizio", Loan::getStartDate);
 
-        TableColumn<Loan, String> cDue = new TableColumn<>("Scadenza");
-        cDue.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getDueDate().format(UiUtils.DATE_FMT)));
-        cDue.setSortable(false);
+        TableColumn<Loan, String> cDue = UiUtils.dateColumn("Scadenza", Loan::getDueDate);
 
-        TableColumn<Loan, String> cReturn = new TableColumn<>("Restituito");
-        cReturn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getReturnDate().format(UiUtils.DATE_FMT)));
-        cReturn.setSortable(false);
+        TableColumn<Loan, String> cReturn = UiUtils.dateColumn("Restituito", Loan::getReturnDate);
 
         table.getColumns().addAll(cTitle, cStart, cDue, cReturn);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
