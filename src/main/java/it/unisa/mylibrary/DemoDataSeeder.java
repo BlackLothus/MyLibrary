@@ -22,7 +22,7 @@ public final class DemoDataSeeder {
 
             // 1. Libri (autori nel formato "Cognome Nome")
             bookService.addBook(new Book("9788845292613", "La Compagnia dell'Anello", List.of("Tolkien J.R.R."), 1954, 3));
-            bookService.addBook(new Book("9788845292620", "Lo schifo... Adesso parlo io", List.of("CiccioGamer89"), 2016, 300));
+            bookService.addBook(new Book("9788845292620", "Le due Torri", List.of("Tolkien J.R.R."), 1954, 2));
             bookService.addBook(new Book("9788845292637", "Il ritorno del Re", List.of("Tolkien J.R.R."), 1955, 2));
             bookService.addBook(new Book("9788845268342", "Lo Hobbit", List.of("Tolkien J.R.R."), 1937, 4));
             bookService.addBook(new Book("9788804668238", "1984", List.of("Orwell George"), 1949, 5));

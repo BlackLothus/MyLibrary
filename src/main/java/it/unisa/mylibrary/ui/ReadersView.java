@@ -53,7 +53,7 @@ public class ReadersView extends BorderPane {
             List<Reader> readers = query.isEmpty() ? readerService.getAllSortedByName() : readerService.search(query);
             items.setAll(readers);
         } catch (LibraryException e) {
-            Alerts.showError("Errore di Lettura", e.getMessage());
+            Alerts.showError("Errore di lettura", e.getMessage());
             return;
         }
 

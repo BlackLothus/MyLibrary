@@ -65,7 +65,7 @@ public class BookService {
         }
         int storicoPrestiti = loanService.getReturnedLoansOfBook(isbn).size();
         if (storicoPrestiti > 0) {
-            throw new LibraryException("Impossibile eliminare:ha uno storico di " + storicoPrestiti
+            throw new LibraryException("Impossibile eliminare: ha uno storico di " + storicoPrestiti
                     + "prestiti conclusi conservati.");
         }
 

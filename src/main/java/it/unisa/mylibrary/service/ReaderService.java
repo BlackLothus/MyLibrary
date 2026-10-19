@@ -33,7 +33,7 @@ public class ReaderService {
         validate(reader);
         // [RD04b] unicità matricola
         if (archive.getReaders().containsKey(reader.getStudentId())) {
-            throw new LibraryException("Esiste già un lettore con matricola:" + reader.getStudentId());
+            throw new LibraryException("Esiste già un lettore con matricola: " + reader.getStudentId());
         }
         archive.getReaders().put(reader.getStudentId(), reader);
     }

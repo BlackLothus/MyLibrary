@@ -25,7 +25,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.function.BooleanSupplier;
 
-public final class UiUtils {
+public class UiUtils {
 
     public static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     public static final String OVERDUE_STYLE = "-fx-background-color: #ffd6d6;";
@@ -35,7 +35,7 @@ public final class UiUtils {
     public static final String UNSAVED_CHANGES_MSG = "Hai inserito o modificato dei dati non ancora salvati.\nSei sicuro di voler scartare le modifiche e abbandonare la pagina?";
 
     private UiUtils() {
-        throw new AssertionError("Classe di utility! Non va istanziata ^.^");
+        throw new AssertionError("Classe di utility! Non va istanziata");
     }
 
     public static StringConverter<LocalDate> createDateConverter() {

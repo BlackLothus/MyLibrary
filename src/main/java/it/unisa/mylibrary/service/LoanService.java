@@ -56,7 +56,7 @@ public class LoanService {
 
         LocalDate today = today();
         LocalDate finalDueDate = (dueDate == null)
-                ? defaultDueDate()  //metto 15 se non specificato RD12
+                ? defaultDueDate()  //metto 15 se non specificato RD16
                 : dueDate;
 
         if (!archive.getReaders().containsKey(readerId)) {

@@ -1,5 +1,3 @@
-// src/main/java/it/unisa/mylibrary/ui/ReaderDetailDialog.java
-
 package it.unisa.mylibrary.ui;
 
 import it.unisa.mylibrary.exception.LibraryException;

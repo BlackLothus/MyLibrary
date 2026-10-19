@@ -40,7 +40,7 @@ public class ReaderFormDialog extends Dialog<Reader> {
         studentIdField.setPromptText("Matricola");
         lastNameField.setPromptText("Cognome");
         firstNameField.setPromptText("Nome");
-        emailField.setPromptText("E-mail");
+        emailField.setPromptText("Email");
 
         GridPane grid = new GridPane();
         grid.setHgap(10);
@@ -55,7 +55,7 @@ public class ReaderFormDialog extends Dialog<Reader> {
         grid.addRow(0, new Label("Matricola:"), studentIdField);
         grid.addRow(1, new Label("Cognome:"), lastNameField);
         grid.addRow(2, new Label("Nome:"), firstNameField);
-        grid.addRow(3, new Label("E-mail:"), emailField);
+        grid.addRow(3, new Label("Email:"), emailField);
 
         getDialogPane().setContent(grid);
 

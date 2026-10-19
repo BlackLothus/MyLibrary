@@ -69,7 +69,7 @@ public class BookFormDialog extends Dialog<Book> {
                 resultBook = new Book(txtIsbn.getText().trim(), txtTitle.getText().trim(), authors, year, copies);
             } catch (NumberFormatException ex) {
                 event.consume();
-                Alerts.showError("Errore di formato:", "Anno e copie devono essere valori numerici interi validi");
+                Alerts.showError("Errore di formato", "Anno e copie devono essere valori numerici interi validi");
             }
         });
 
