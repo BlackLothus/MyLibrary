@@ -1,10 +1,7 @@
 package it.unisa.mylibrary.model;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Objects;
-import java.util.ArrayList;
-import java.util.Locale;
+import java.util.*;
 
 public class Book implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -19,11 +16,12 @@ public class Book implements Serializable {
     public Book(String isbn, String title, List<String> authors, int year, int totalCopies) {
         this.isbn = normalizeIsbn(isbn);
         this.title = title;
-        this.authors = (authors == null) //disaccoppiamento totale, faccio dipendere la lista da ora solo da Book
-                ? new ArrayList<>()
-                : new ArrayList<>(authors);
+        this.authors = copyOrEmpty(authors);
         this.year = year;
         this.totalCopies = totalCopies;
+    }
+    private static List<String> copyOrEmpty(List<String> src) { ////disaccoppiamento totale, faccio dipendere la lista da ora solo da Book
+        return src == null ? new ArrayList<>() : new ArrayList<>(src);
     }
     public static String normalizeIsbn (String rawIsbn){
         if (rawIsbn == null){
@@ -41,10 +39,10 @@ public class Book implements Serializable {
         this.title = title;
     }
     public List<String> getAuthors() {
-        return authors;
+        return Collections.unmodifiableList(authors); //// Vista in sola lettura invece di un semplice return authors
     }
     public void setAuthors(List<String> authors) {
-        this.authors = authors == null ? new ArrayList<>() : new ArrayList<>(authors); //ripeto il ternario che sta nel costruttore
+        this.authors = copyOrEmpty(authors);
     }
     public int getYear() {
         return year;
@@ -69,7 +67,7 @@ public class Book implements Serializable {
         }
         Book libro = (Book) o;
         if (this.isbn ==null){
-            return libro.isbn ==null; //evito NullPointerException ISBN non sia ancora inizializzato
+            return libro.isbn ==null; //evito NullPointerException ISBN non sia ancora inizializzato, //potrei usare
         }
         return this.isbn.equals(libro.isbn);
     }

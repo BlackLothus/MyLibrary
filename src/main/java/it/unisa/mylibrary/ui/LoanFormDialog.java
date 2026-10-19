@@ -98,11 +98,7 @@ public class LoanFormDialog extends Dialog<Void> {
         Button okButton = (Button) getDialogPane().lookupButton(okType);
 
         bookList.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal == null || loanService.availableCopies(newVal.getIsbn()) <= 0) {
-                okButton.setDisable(true);
-            } else {
-                okButton.setDisable(false);
-            }
+            okButton.setDisable(newVal == null || loanService.availableCopies(newVal.getIsbn()) <= 0);
         });
         okButton.setDisable(true);
 

@@ -233,9 +233,7 @@ public class ReaderDetailDialog extends Dialog<Boolean> {
 
     private void onNewLoan() {
         LoanFormDialog dialog = new LoanFormDialog(reader, bookService, loanService);
-        if (getDialogPane().getScene() != null) {
-            dialog.initOwner(getDialogPane().getScene().getWindow());
-        }
+        UiUtils.setOwner(dialog, getDialogPane());
         dialog.showAndWait();
 
         if (dialog.isLoanRegistered()) {
