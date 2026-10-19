@@ -102,7 +102,22 @@ class BookServiceTest {
         prestito.markReturned(LocalDate.now());
         assertThrows(LibraryException.class, () -> service.removeBook("9780000000111")); // Blocco per storico
     }
+    @Test
+    void testFindByIsbnNormalizzaInput() {
+        service.addBook(creaLibro("9788804668238", "1984", 1949, 1, "George Orwell"));
+        assertTrue(service.findByIsbn("978-88-04-66823-8").isPresent());
+        assertTrue(service.findByIsbn(null).isEmpty());
+        assertTrue(service.findByIsbn("0000000000").isEmpty());
+    }
 
+    @Test
+    void testRicercaOrdinataPerAutore() {
+        popolaArchivioDati();
+        assertEquals(Arrays.asList("1984", "La fattoria degli animali"),
+                estraiTitoli(service.searchSortedByAuthor("orwell")));
+        assertEquals(estraiTitoli(service.getAllSortedByAuthor()),
+                estraiTitoli(service.searchSortedByAuthor("")));
+    }
     @Test
     void testOrdinamentoCatalogo() {
         popolaArchivioDati();

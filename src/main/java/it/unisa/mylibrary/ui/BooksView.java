@@ -5,8 +5,6 @@ import it.unisa.mylibrary.model.Book;
 import it.unisa.mylibrary.service.BookService;
 import it.unisa.mylibrary.service.LoanService;
 import it.unisa.mylibrary.service.ReaderService;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
@@ -15,6 +13,9 @@ import javafx.scene.layout.*;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Vista principale del catalogo libri con barra di ricerca e ordinamento per titolo o autore (RF01, RF02, RF08, IU17).
+ */
 public class BooksView extends VBox {
     private enum SortMode { TITLE, AUTHOR }
 
@@ -118,7 +119,7 @@ public class BooksView extends VBox {
         Book b = table.getSelectionModel().getSelectedItem();
         if (b != null) {
             BookDetailDialog dialog = new BookDetailDialog(b, bookService, loanService, readerService);
-            UiUtils.setOwner(dialog, this);;
+            UiUtils.setOwner(dialog, this);
             dialog.showAndWait().ifPresent(actionTaken -> {
                 if (actionTaken) refresh();
             });
@@ -131,7 +132,7 @@ public class BooksView extends VBox {
 
         while (!success) {
             BookFormDialog dialog = new BookFormDialog(current, false);
-            if (getScene() != null) dialog.initOwner(getScene().getWindow());
+            UiUtils.setOwner(dialog, this);
             Optional<Book> result = dialog.showAndWait();
 
             if (result.isEmpty()) {

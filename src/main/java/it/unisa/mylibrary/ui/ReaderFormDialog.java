@@ -11,6 +11,10 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 
+/**
+ * Maschera condivisa per inserire o modificare un lettore, con avviso in caso di modifiche non salvate (RF10, RF14, IU05, IU06, IU08, IU19-IU21).
+ */
+
 public class ReaderFormDialog extends Dialog<Reader> {
 
     private final TextField studentIdField = new TextField();

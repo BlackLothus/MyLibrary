@@ -9,7 +9,6 @@ import it.unisa.mylibrary.service.ReaderService;
 import java.util.List;
 import java.util.Optional;
 
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -22,6 +21,10 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+
+/**
+ * Vista dell'anagrafica lettori con elenco ordinato per cognome/nome e ricerca parziale (RF09, RF16, IU17).
+ */
 
 public class ReadersView extends BorderPane {
 
@@ -127,9 +130,7 @@ public class ReadersView extends BorderPane {
         boolean success = false;
         while (!success) {
             ReaderFormDialog dialog = new ReaderFormDialog(current, false);
-            if (getScene() != null) {
-                dialog.initOwner(getScene().getWindow());
-            }
+            UiUtils.setOwner(dialog, this);
             Optional<Reader> result = dialog.showAndWait();
             if (result.isEmpty()) {
                 return;

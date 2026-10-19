@@ -13,12 +13,22 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Gestisce il catalogo libri applicando validazioni formali e regole di dominio (RF01-RF06, RF08).
+ */
 public class BookService {
     //[ED02]: Controllo su ISBN-10 (9 cifre + decima cifra o 'X') e ISBN-13 (prefisso 978/979 + 10 cifre)
     private static final Pattern FORMATO_ISBN = Pattern.compile("^(?:\\d{9}[\\dX]|97[89]\\d{10})$");
     private final Archive archive;
     private final LoanService loanService;
 
+    /**
+     * Inizializza il servizio associandolo all'archivio e al servizio prestiti.
+     *
+     * @param archive     stato globale della biblioteca
+     * @param loanService servizio prestiti per verificare i vincoli sulle copie
+     * @throws LibraryException se {@code archive} o {@code loanService} sono nulli
+     */
     public BookService(Archive archive, LoanService loanService) {
         if (archive == null) {
             throw new LibraryException("L'archivio non può essere nullo.");
@@ -30,6 +40,13 @@ public class BookService {
         this.loanService = loanService;
     }
 
+    /**
+     * Inserisce un nuovo libro nel catalogo (RF03).
+     *
+     * @param book il libro da aggiungere
+     * @throws LibraryException se i dati obbligatori mancano (ED01a), l'ISBN non è valido (ED02),
+     *         le copie sono negative o l'ISBN è già presente in archivio (RD04a)
+     */
     public void addBook(Book book) {
         validate(book);
         if (archive.getBooks().containsKey(book.getIsbn())) {
@@ -38,6 +55,14 @@ public class BookService {
         archive.getBooks().put(book.getIsbn(), book);
     }
 
+    /**
+     * Aggiorna i dati di un libro esistente (RF05).
+     * È consentito impostare le copie totali a zero (RD01), purché non scendano sotto i prestiti attivi.
+     *
+     * @param book il libro con i dati aggiornati
+     * @throws LibraryException se i dati non sono validi (ED01a, ED02), il libro non esiste
+     *         o le copie totali sono inferiori ai prestiti attualmente attivi (RD03)
+     */
     public void updateBook(Book book) {
         validate(book);
         if (!archive.getBooks().containsKey(book.getIsbn())) {
@@ -53,8 +78,19 @@ public class BookService {
         archive.getBooks().put(book.getIsbn(),book);
     }
 
+    /**
+     * Rimuove un libro dal catalogo (RF06).
+     *
+     * @param isbn codice ISBN del libro da eliminare
+     * @throws LibraryException se il libro non esiste o se ha prestiti attivi o conclusi nello storico (RD02)
+     */
     public void removeBook(String isbn) {
-        if (isbn == null || !archive.getBooks().containsKey(isbn)) {
+        if (isbn == null) {
+            throw new LibraryException("L'ISBN non può essere vuoto.");
+        }
+
+        isbn = Book.normalizeIsbn(isbn);
+        if (!archive.getBooks().containsKey(isbn)) {
             throw new LibraryException("Nessun libro trovato con ISBN " + isbn + ".");
         }
 
@@ -66,12 +102,18 @@ public class BookService {
         int storicoPrestiti = loanService.getReturnedLoansOfBook(isbn).size();
         if (storicoPrestiti > 0) {
             throw new LibraryException("Impossibile eliminare: ha uno storico di " + storicoPrestiti
-                    + "prestiti conclusi conservati.");
+                    + " prestiti conclusi conservati.");
         }
 
         archive.getBooks().remove(isbn);
     }
 
+    /**
+     * Cerca un libro tramite ISBN, normalizzando l'input prima della ricerca (RF04).
+     *
+     * @param isbn ISBN da cercare
+     * @return {@link Optional} col libro trovato, o vuoto se non esiste o l'input è nullo
+     */
     public Optional<Book> findByIsbn(String isbn) {
         if (isbn == null) {
             return Optional.empty();
@@ -81,17 +123,35 @@ public class BookService {
         return Optional.ofNullable(archive.getBooks().get(isbnNormalizzato));
     }
 
+    /**
+     * Restituisce tutti i libri ordinati alfabeticamente per titolo, ignorando maiuscole/minuscole (RF01, RF02).
+     *
+     * @return lista dei libri ordinata per titolo
+     */
     public List<Book> getAllSortedByTitle() {
         List<Book> result = new ArrayList<>(archive.getBooks().values());
         result.sort(byTitle());
         return result;
     }
 
+    /**
+     * Restituisce tutti i libri ordinati per primo autore e, a parità, per titolo (RF01, RF02).
+     *
+     * @return lista dei libri ordinata per autore
+     */
     public List<Book> getAllSortedByAuthor() {
         List<Book> result = new ArrayList<>(archive.getBooks().values());
         result.sort(byAuthor());
         return result;
     }
+
+    /**
+     * Cerca libri per corrispondenza parziale e case-insensitive su titolo, autori o ISBN,
+     * restituendo i risultati ordinati per titolo (RF08, RF02).
+     *
+     * @param o testo da cercare; se nullo o vuoto restituisce l'intero catalogo
+     * @return lista dei libri corrispondenti
+     */
     //RF08
     public List<Book> search(String o) {
         if (o == null || o.isBlank()) {
@@ -100,6 +160,12 @@ public class BookService {
         return filterBooks(o).sorted(byTitle()).collect(Collectors.toList());
     }
 
+    /**
+     * Esegue la stessa ricerca di {@link #search(String)} ma ordina i risultati per autore (RF08, RF02).
+     *
+     * @param o testo da cercare; se nullo o vuoto restituisce l'intero catalogo
+     * @return lista dei libri corrispondenti ordinata per autore
+     */
     //RF08
     public List<Book> searchSortedByAuthor(String o) {
         if (o == null || o.isBlank()) {

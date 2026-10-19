@@ -13,6 +13,10 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+/**
+ * Finestra di dettaglio di un prestito con dati in sola lettura e pulsante per la restituzione (RF23, IU14, IU14a, IU14c).
+ */
+
 public class LoanDetailDialog extends Dialog<Void> {
 
     private final Loan loan;

@@ -16,6 +16,10 @@ import javafx.scene.text.FontWeight;
 
 import java.util.List;
 
+/**
+ * Schermata principale (bacheca) che mostra in tempo reale i quattro contatori sintetici della biblioteca (RF25, IU02).
+ */
+
 public class DashboardView extends VBox {
 
     private static final String COLOR_HEADER_TEXT = "#333333";

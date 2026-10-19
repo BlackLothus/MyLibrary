@@ -3,6 +3,10 @@ package it.unisa.mylibrary.model;
 import java.io.Serializable;
 import java.util.Objects;
 
+/**
+ * Rappresenta l'anagrafica di un lettore iscritto alla biblioteca (ED04).
+ * L'identità è determinata univocamente dalla matricola (RD04b).
+ */
 public class Reader implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -10,6 +14,14 @@ public class Reader implements Serializable {
     private String lastName;
     private final String studentId; //uso questo come identificativo
     private String email; //non chekko sul solo istituzionale per future implementazioni
+    /**
+     * Crea un nuovo lettore con i dati anagrafici obbligatori.
+     *
+     * @param firstName nome del lettore
+     * @param lastName  cognome del lettore
+     * @param studentId matricola identificativa
+     * @param email     indirizzo e-mail
+     */
 
     public Reader(String firstName, String lastName, String studentId, String email) {
         this.firstName = firstName;
@@ -63,5 +75,4 @@ public class Reader implements Serializable {
     public String toString() {
         return "Reader studentId=" + studentId + ", name=" + firstName + " " + lastName;
     }
-
 }

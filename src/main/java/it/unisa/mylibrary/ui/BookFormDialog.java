@@ -10,6 +10,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Maschera condivisa per l'inserimento e la modifica di un libro, con controllo sulle modifiche non salvate (RF03, RF05, IU05, IU06, IU08, IU19-IU21).
+ */
 public class BookFormDialog extends Dialog<Book> {
 
     private final TextField txtIsbn = new TextField();

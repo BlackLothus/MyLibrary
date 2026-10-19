@@ -5,7 +5,6 @@ import it.unisa.mylibrary.service.BookService;
 import it.unisa.mylibrary.service.LoanService;
 import it.unisa.mylibrary.service.ReaderService;
 
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -20,6 +19,10 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 
 import java.util.List;
+
+/**
+ * Vista generale dei prestiti attivi con ordinamento per scadenza o data di inizio ed evidenziazione dei ritardi (RF17, RF18, IU17, IU18).
+ */
 
 public class LoansView extends BorderPane {
 

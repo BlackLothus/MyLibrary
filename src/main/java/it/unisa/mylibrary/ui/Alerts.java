@@ -6,6 +6,9 @@ import javafx.scene.control.ButtonType;
 
 import java.util.Optional;
 
+/**
+ * Classe di utilità per mostrare popup di errore, informazione e conferma (IU20, IU22).
+ */
 public class Alerts {
     private Alerts(){
         throw new AssertionError("Classe di utility,non va istanziata");

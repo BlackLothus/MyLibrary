@@ -25,6 +25,10 @@ import javafx.stage.Modality;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Finestra per registrare un nuovo prestito a un lettore, con selezione del volume e della data di scadenza (RF21, RD16, IU10c).
+ */
+
 public class LoanFormDialog extends Dialog<Void> {
 
     private final Reader reader;

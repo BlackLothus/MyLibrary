@@ -10,6 +10,9 @@ import it.unisa.mylibrary.service.ReaderService;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Classe di supporto che popola l'archivio con dati dimostrativi al primo avvio se non esiste un autosalvataggio.
+ */
 // popola l'archivio con dati dimostrativi, solo se è vuoto
 public final class DemoDataSeeder {
 

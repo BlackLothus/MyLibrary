@@ -3,6 +3,10 @@ package it.unisa.mylibrary.model;
 import java.io.Serializable;
 import java.util.*;
 
+/**
+ * Rappresenta un libro del catalogo con i suoi dati obbligatori (ED01a).
+ * L'identità del volume si basa unicamente sul codice ISBN normalizzato (RD04a).
+ */
 public class Book implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -13,6 +17,15 @@ public class Book implements Serializable {
     private int totalCopies;
     //solo per versione minima MVP
 
+    /**
+     * Costruisce un nuovo libro normalizzando l'ISBN e creando una copia difensiva degli autori.
+     *
+     * @param isbn        codice ISBN (anche con trattini o spazi)
+     * @param title       titolo del volume
+     * @param authors     lista degli autori
+     * @param year        anno di pubblicazione
+     * @param totalCopies copie fisiche totali possedute
+     */
     public Book(String isbn, String title, List<String> authors, int year, int totalCopies) {
         this.isbn = normalizeIsbn(isbn);
         this.title = title;
@@ -20,15 +33,24 @@ public class Book implements Serializable {
         this.year = year;
         this.totalCopies = totalCopies;
     }
+
     private static List<String> copyOrEmpty(List<String> src) { ////disaccoppiamento totale, faccio dipendere la lista da ora solo da Book
         return src == null ? new ArrayList<>() : new ArrayList<>(src);
     }
+
+    /**
+     * Rimuove spazi e trattini dall'ISBN e converte eventuali caratteri in maiuscolo.
+     *
+     * @param rawIsbn stringa ISBN grezza
+     * @return ISBN pulito, oppure {@code null} se l'input è nullo
+     */
     public static String normalizeIsbn (String rawIsbn){
         if (rawIsbn == null){
             return null;
         }
         return rawIsbn.replaceAll("[- ]","").toUpperCase(Locale.ROOT); //metto in maiuscolo la X finale che sta negli ISBN10, Locale.ROOT na finezza se ci si trova in turchia o altro, in questo caso intuile
     }
+
     public String getIsbn() {
         return isbn;
     }
@@ -67,7 +89,7 @@ public class Book implements Serializable {
         }
         Book libro = (Book) o;
         if (this.isbn ==null){
-            return libro.isbn ==null; //evito NullPointerException ISBN non sia ancora inizializzato, //potrei usare
+            return libro.isbn ==null; //evito NullPointerException ISBN non sia ancora inizializzato,
         }
         return this.isbn.equals(libro.isbn);
     }

@@ -37,7 +37,15 @@ class LoanServiceTest {
         archive.getBooks().put("9780000000003", new Book("9780000000003", "Libro 3", List.of("A"), 2020, 1));
         archive.getBooks().put("9780000000004", new Book("9780000000004", "Libro 4", List.of("A"), 2020, 1));
     }
+    @Test
+    void testOrdinamentoPerDataInizio() {
+        Loan a = new Loan("R1", "9780000000001", LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 20));
+        Loan b = new Loan("R2", "9780000000002", LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 25));
+        archive.getLoans().add(a);
+        archive.getLoans().add(b);
 
+        assertEquals(b.getId(), service.getActiveLoansSortedByStartDate().get(0).getId());
+    }
     @Test
     void testCostruttore() {
         assertThrows(LibraryException.class, () -> new LoanService(null, fixedClock));

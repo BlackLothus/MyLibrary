@@ -12,23 +12,41 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
- //Service per la gestione dell'anagrafica lettori e applica le regole di dominio prima di toccare l'archivo
+/**
+ * Gestisce l'anagrafica dei lettori applicando le validazioni e le regole di dominio (RF09, RF10, RF12, RF14-RF16).
+ */
+//Service per la gestione dell'anagrafica lettori e applica le regole di dominio prima di toccare l'archivo
 public class ReaderService {
     //ED03
     private static final Pattern FORMATO_EMAIL = Pattern.compile("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"); //email istituzionale supportata
     private final Archive archive;
     private final LoanService loanService;
 
-    public ReaderService(Archive arc, LoanService lS) {
-        if(arc == null) {
+    /**
+     * Inizializza il servizio associandolo all'archivio e al servizio prestiti.
+     *
+     * @param archive stato globale della biblioteca
+     * @param loanServiceS  servizio prestiti per verificare eventuali pendenze in fase di rimozione
+     * @throws LibraryException se {@code archive} o {@code loanServiceS} sono nulli
+     */
+    public ReaderService(Archive archive, LoanService loanServiceS) {
+        if(archive == null) {
             throw new LibraryException("L'archivio non può essere nullo");
         }
-        this.archive = arc;
-        if (lS == null) {
+        this.archive = archive;
+        if (loanServiceS == null) {
             throw new LibraryException("Il LoanService non può essere nullo");
         }
-        this.loanService = lS;
+        this.loanService = loanServiceS;
     }
+
+    /**
+     * Registra un nuovo lettore in archivio (RF10).
+     *
+     * @param reader il lettore da inserire
+     * @throws LibraryException se mancano dati obbligatori (ED04), l'email non è valida (ED03)
+     *         o la matricola è già presente a sistema (RD04b)
+     */
     public void addReader(Reader reader) {
         validate(reader);
         // [RD04b] unicità matricola
@@ -38,6 +56,12 @@ public class ReaderService {
         archive.getReaders().put(reader.getStudentId(), reader);
     }
 
+    /**
+     * Aggiorna i dati anagrafici di un lettore esistente (RF14).
+     *
+     * @param reader il lettore con i dati aggiornati
+     * @throws LibraryException se i dati non sono validi (ED03, ED04) o la matricola non esiste
+     */
     public void updateReader(Reader reader) {
         validate(reader);
         if (!archive.getReaders().containsKey(reader.getStudentId())) {
@@ -45,6 +69,13 @@ public class ReaderService {
         }
         archive.getReaders().put(reader.getStudentId(), reader);
     }
+
+    /**
+     * Elimina un lettore dall'anagrafica (RF15).
+     *
+     * @param studentId matricola del lettore da rimuovere
+     * @throws LibraryException se il lettore non esiste o se ha prestiti attivi o conclusi nello storico (RD07, RD15)
+     */
     //Eliminazione sicura (RD07): vietata se l'utente ha libri in carico o uno storico concluso
     public void removeReader(String studentId) throws LibraryException {
         if (studentId == null || !archive.getReaders().containsKey(studentId)) {
@@ -63,12 +94,24 @@ public class ReaderService {
         archive.getReaders().remove(studentId);
     }
 
+    /**
+     * Cerca un lettore tramite la sua matricola (RF12).
+     *
+     * @param studentId matricola da cercare
+     * @return {@link Optional} col lettore trovato, o vuoto se non esiste
+     */
     public Optional<Reader> findByStudentId(String studentId) { //https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html provo ad usarlo per la prima volta, mi ricorda che devo gestire il null assolutamente
         if (studentId ==null){
-        return Optional.empty();
+            return Optional.empty();
         }
         return Optional.ofNullable(archive.getReaders().get(studentId.trim()));
     }
+
+    /**
+     * Restituisce tutti i lettori ordinati per cognome e nome (RF09).
+     *
+     * @return lista dei lettori ordinata alfabeticamente
+     */
     //elenco completo per la tabella
     public List<Reader> getAllSortedByName() {
         List<Reader> result = new ArrayList<>(archive.getReaders().values());
@@ -76,20 +119,27 @@ public class ReaderService {
         return result;
     }
 
-    public List<Reader> search(String q) {
-        if (q == null || q.isBlank()) {
+    /**
+     * Cerca lettori per corrispondenza parziale e case-insensitive su cognome o matricola (RF16).
+     *
+     * @param query testo da cercare; se nullo o vuoto restituisce l'intera lista ordinata
+     * @return lista dei lettori corrispondenti ordinata per cognome e nome
+     */
+    public List<Reader> search(String query) {
+        if (query == null || query.isBlank()) {
             return getAllSortedByName();
         }
-        String filtro = q.trim().toLowerCase(Locale.ROOT);
+        String filtro = query.trim().toLowerCase(Locale.ROOT);
         return archive.getReaders().values().stream()
                 .filter(r -> matches(r, filtro))
                 .sorted(byName())
                 .collect(Collectors.toList());
     }
+
     //helper
-     private static boolean matches(Reader r, String searchedText) {
-         boolean matchLastName = r.getLastName() != null && r.getLastName().toLowerCase(Locale.ROOT).contains(searchedText);
-         boolean matchMatricola = r.getStudentId() != null && r.getStudentId().toLowerCase(Locale.ROOT).contains(searchedText);
+     private static boolean matches(Reader reader, String searchedText) {
+         boolean matchLastName = reader.getLastName() != null && reader.getLastName().toLowerCase(Locale.ROOT).contains(searchedText);
+         boolean matchMatricola = reader.getStudentId() != null && reader.getStudentId().toLowerCase(Locale.ROOT).contains(searchedText);
          return matchLastName || matchMatricola;
      }
 

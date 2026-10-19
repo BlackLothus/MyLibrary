@@ -7,7 +7,6 @@ import it.unisa.mylibrary.service.BookService;
 import it.unisa.mylibrary.service.LoanService;
 import it.unisa.mylibrary.service.ReaderService;
 
-import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -17,6 +16,9 @@ import javafx.scene.text.FontWeight;
 
 import java.util.Optional;
 
+/**
+ * Finestra di dettaglio di un libro con azioni di modifica/eliminazione ed elenco dei prestiti attivi (RF04, IU13, IU13a, IU13b).
+ */
 public class BookDetailDialog extends Dialog<Boolean> {
 
     private final Book book;

@@ -7,7 +7,6 @@ import it.unisa.mylibrary.service.BookService;
 import it.unisa.mylibrary.service.LoanService;
 import it.unisa.mylibrary.service.ReaderService;
 
-import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -23,6 +22,10 @@ import javafx.scene.text.FontWeight;
 
 import java.util.List;
 import java.util.Optional;
+
+/**
+ * Scheda operativa del lettore con dati anagrafici, i 3 slot per i prestiti attivi e lo storico dei conclusi (RF12, RF13, RD15, IU10, IU10a, IU10b, IU11, IU11a).
+ */
 
 public class ReaderDetailDialog extends Dialog<Boolean> {
 

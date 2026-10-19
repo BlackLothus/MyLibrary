@@ -24,7 +24,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
-public class UiUtils {
+/**
+ * Funzioni di utilità grafica condivise tra le viste (formattazione date, colonne tabelle, guardia modifiche non salvate e flusso di restituzione) (IU16, IU18-IU21).
+ */
+
+public final class UiUtils {
 
     public static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     public static final String OVERDUE_STYLE = "-fx-background-color: #ffd6d6;";
@@ -68,6 +72,10 @@ public class UiUtils {
         g.add(v, 1, row);
     }
 
+    /**
+     * Configura una Dialog di sola consultazione aggiungendo un pulsante di chiusura nascosto,
+     * necessario a JavaFX per abilitare la chiusura tramite la "X" della finestra.
+     */
     public static void setupCloseableReadOnlyDialog(Dialog<?> dialog) {
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
         Node closeButton = dialog.getDialogPane().lookupButton(ButtonType.CLOSE);
@@ -76,6 +84,10 @@ public class UiUtils {
             closeButton.setManaged(false);
         }
     }
+    /**
+     * Intercetta la chiusura del form (tasto Annulla o "X") e chiede conferma all'utente
+     * se ci sono modifiche non salvate (IU19, IU20, IU21), impostando anche il focus iniziale.
+     */
     public static void installUnsavedChangesGuard(Dialog<?> dialog, ButtonType cancelType,
                                                   BooleanSupplier hasDirtyChanges, Node initialFocus) {
         // Annulla: chiedo conferma solo se c'è qualcosa di non salvato
@@ -117,7 +129,12 @@ public class UiUtils {
                 .map(Book::getTitle)
                 .orElse(isbn);
     }
-
+    /**
+     * Centralizza il flusso di restituzione di un libro (principio DRY): chiede conferma con un Alert
+     * e delega la chiusura al {@link LoanService} mostrando eventuali errori di dominio (RF23, IU16, IU22).
+     *
+     * @return {@code true} se l'utente conferma e la restituzione va a buon fine, {@code false} altrimenti
+     */
     public static boolean executeReturnLoan(Loan loan, LoanService loanService, String bookTitle) {
         if (Alerts.showConfirm("Restituzione", "Registrare la restituzione di \"" + bookTitle + "\"?")) {
             try {
@@ -143,7 +160,7 @@ public class UiUtils {
     public static <S> TableColumn<S, String> dateColumn(String title, Function<S, LocalDate> getter) {
         return textColumn(title, s -> {
          LocalDate d = getter.apply(s);
-         return d != null ? d.format(DATE_FMT) : "";});
-
+         return d != null ? d.format(DATE_FMT) : "";
+        });
     }
 }

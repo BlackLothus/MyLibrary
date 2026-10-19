@@ -12,9 +12,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 /**
- * Gestione della persistenza su file system locale.
- * Per la separazione dei livelli (SoC), questa classe si occupa solo di I/O binario
- * e non interagisce direttamente con l'interfaccia utente né con stampe a video.
+ * Implementazione dello storage su file system locale tramite serializzazione binaria (RF26, RF27).
+ * Si occupa solo di I/O senza dipendere dalla UI (RNF09).
  */
 public class ArchiveStorage implements LibraryStorage {
 
@@ -23,6 +22,14 @@ public class ArchiveStorage implements LibraryStorage {
         return Files.exists(path);         //verifica la presenza del file sul disco
     }
 
+    /**
+     * Salva l'archivio su file passando per un file temporaneo, così da garantire
+     * l'atomicità e non corrompere il salvataggio precedente in caso di errore (RNF03, RNF06).
+     *
+     * @param archive l'archivio da serializzare
+     * @param path    il percorso di destinazione
+     * @throws LibraryException se la scrittura o la sostituzione del file falliscono
+     */
     @Override
     public void save(Archive archive, Path path) throws LibraryException {
         // Non scrivo subito sul file finale per sicurezza: uso prima un file temporaneo
@@ -57,6 +64,14 @@ public class ArchiveStorage implements LibraryStorage {
         }
     }
 
+    /**
+     * Carica l'archivio dal file.
+     * Applica un filtro per bloccare eventuali classi sospette o non previste nel file.
+     *
+     * @param path il percorso del file da leggere
+     * @return l'archivio caricato
+     * @throws LibraryException se il file non c'è, è corrotto o impossibile da leggere
+     */
     @Override
     public Archive load(Path path) throws LibraryException {
         try (InputStream input = Files.newInputStream(path);
@@ -64,8 +79,8 @@ public class ArchiveStorage implements LibraryStorage {
 
             // Filtro di sicurezza per la deserializzazione: ammette solo classi del model e java base
             ObjectInputFilter filter = ObjectInputFilter.Config.createFilter(
-                    "it.unisa.mylibrary.model.*;java.base/*;!*"
-            );
+                    "it.unisa.mylibrary.model.*;java.lang.*;java.util.*;java.time.*;!*"
+            );;
             objInput.setObjectInputFilter(filter);
 
             return (Archive) objInput.readObject();

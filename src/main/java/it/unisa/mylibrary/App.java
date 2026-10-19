@@ -27,6 +27,11 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.nio.file.Path;
 import java.time.Clock;
+import java.util.Locale;
+
+/**
+ * Punto di ingresso dell'applicazione JavaFX: istanzia archivio, servizi e viste e gestisce il menu laterale e la persistenza (IU01-IU04, RF26, RF27, RNF05).
+ */
 
 public class App extends Application {
 
@@ -159,7 +164,7 @@ public class App extends Application {
         if (file != null) {
             // forzo l'estensione .dat
             String path = file.getAbsolutePath();
-            if (!path.toLowerCase().endsWith(".dat")) {
+            if (!path.toLowerCase(Locale.ROOT).endsWith(".dat")) {
                 path += ".dat";
             }
 
@@ -167,7 +172,7 @@ public class App extends Application {
                 archiveManager.saveToFile(Path.of(path));
                 Alerts.showInfo("Salvataggio Completato", "Archivio salvato con successo in:\n" + new File(path).getName());
             } catch (Exception ex) {
-                Alerts.showError("Errore di Salvataggio", "Impossibile salvare il file:\n" + ex.getMessage());
+                Alerts.showError("Errore di Salvataggio",  ex.getMessage());
             }
         }
     }
