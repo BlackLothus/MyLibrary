@@ -8,12 +8,10 @@ import it.unisa.mylibrary.service.LoanService;
 import it.unisa.mylibrary.service.ReaderService;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -24,6 +22,7 @@ import javafx.util.StringConverter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 
 public class UiUtils {
 
@@ -129,5 +128,22 @@ public class UiUtils {
             }
         }
         return false;
+    }
+    public static void setOwner(Dialog<?> dialog, Node node) {
+        if (node != null && node.getScene() != null) {
+            dialog.initOwner(node.getScene().getWindow());
+        }
+    }
+    public static <S> TableColumn<S, String> textColumn(String title, Function<S, String> getter) {
+        TableColumn<S, String> col = new TableColumn<>(title);
+        col.setCellValueFactory(c -> new SimpleStringProperty(getter.apply(c.getValue())));
+        col.setSortable(false);
+        return col;
+    }
+    public static <S> TableColumn<S, String> dateColumn(String title, Function<S, LocalDate> getter) {
+        return textColumn(title, s -> {
+         LocalDate d = getter.apply(s);
+         return d != null ? d.format(DATE_FMT) : "";});
+
     }
 }

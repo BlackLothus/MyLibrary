@@ -70,30 +70,17 @@ public class BooksView extends VBox {
     }
 
     private void setupTable() {
-        TableColumn<Book, String> colIsbn = new TableColumn<>("ISBN");
-        colIsbn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getIsbn()));
-        colIsbn.setSortable(false); // L'ordinamento è gestito dai bottoni della toolbar
+        TableColumn<Book, String> colIsbn = UiUtils.textColumn("ISBN", Book::getIsbn);
 
-        TableColumn<Book, String> colTitle = new TableColumn<>("Titolo");
-        colTitle.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getTitle()));
-        colTitle.setSortable(false);
+        TableColumn<Book, String> colTitle = UiUtils.textColumn("Titolo", Book::getTitle);
 
-        TableColumn<Book, String> colAuthors = new TableColumn<>("Autori");
-        colAuthors.setCellValueFactory(c -> new SimpleStringProperty(String.join(", ", c.getValue().getAuthors())));
-        colAuthors.setSortable(false);
+        TableColumn<Book, String> colAuthors = UiUtils.textColumn("Autori", b -> String.join(", ", b.getAuthors()));
 
-        TableColumn<Book, Number> colYear = new TableColumn<>("Anno");
-        colYear.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().getYear()));
-        colYear.setSortable(false);
+        TableColumn<Book, String> colYear = UiUtils.textColumn("Anno", b -> String.valueOf(b.getYear()));
 
-        TableColumn<Book, Number> colCopies = new TableColumn<>("Copie Totali");
-        colCopies.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().getTotalCopies()));
-        colCopies.setSortable(false);
+        TableColumn<Book, String> colCopies = UiUtils.textColumn("Copie Totali", b -> String.valueOf(b.getTotalCopies()));
 
-        TableColumn<Book, Number> colAvailable = new TableColumn<>("Disponibili");
-        // Calcolo dinamico delle giacenze a runtime
-        colAvailable.setCellValueFactory(c -> new SimpleIntegerProperty(loanService.availableCopies(c.getValue().getIsbn())));
-        colAvailable.setSortable(false);
+        TableColumn<Book, String> colAvailable = UiUtils.textColumn("Disponibili",b -> String.valueOf(loanService.availableCopies(b.getIsbn())));
 
         table.getColumns().addAll(colIsbn, colTitle, colAuthors, colYear, colCopies, colAvailable);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
@@ -131,7 +118,7 @@ public class BooksView extends VBox {
         Book b = table.getSelectionModel().getSelectedItem();
         if (b != null) {
             BookDetailDialog dialog = new BookDetailDialog(b, bookService, loanService, readerService);
-            if (getScene() != null) dialog.initOwner(getScene().getWindow());
+            UiUtils.setOwner(dialog, this);;
             dialog.showAndWait().ifPresent(actionTaken -> {
                 if (actionTaken) refresh();
             });
